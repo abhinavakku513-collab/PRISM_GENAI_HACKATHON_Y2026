@@ -14,6 +14,25 @@ retrieval across all versions.
 
 ---
 
+---
+
+## 🎬 Final Submission Materials
+
+> **These are the required final submission materials for ACIS.**
+> The links below point to the final versions prepared for evaluation and presentation.
+
+### 🎥 Final Demo Video
+[▶️ Watch the Final ACIS Demo on YouTube](https://youtu.be/1m9tNrEVDPE)
+
+### 📊 Final Presentation
+[📑 View / Download the Final Presentation PPT](https://drive.google.com/file/d/1-vBNToXaPN_mBm7sECWhhGygp_0sxUPs/view?usp=sharing)
+
+### 🤖 AI Disclosure Form
+[📄 View the AI Disclosure Form](https://drive.google.com/file/d/1lcrjYHLip5gczSxRWADWOnYTv2RxA_VB/view?usp=sharing)
+
+> **Note:** The materials linked above are the **final versions** of the demo, presentation, and AI disclosure submitted for the Samsung PRISM GenAI Hackathon.
+
+
 ## 1. What problem does ACIS solve?
 
 Imagine a codebase with thousands of programs. You type:
