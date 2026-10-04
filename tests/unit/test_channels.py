@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 
 import numpy as np
+import pytest
 
 from acis.core.config import freeze_config
 from acis.core.types import Snippet
@@ -229,3 +230,21 @@ def test_encoder_agreement_features_exist_with_a_second_encoder_and_are_nan_with
     data1 = one.snapshot_data(one.build_snapshot(DOCS, source="t"))
     _, pool1 = one.candidate_pool(data1, query, route="generic", want=5)
     assert np.isnan(one.pool_features(data1, query, pool1)[:, cols]).all()
+
+
+def test_confidence_signal_is_the_mean_of_both_encoders_z_when_a_second_encoder_exists():
+    from acis.embed.base import exact_search
+    from acis.rank.confidence import CROWD, z_top1
+
+    engine = _engine(model={"encoder": "hashing", "aux_encoder": "hashing", "dim": 64}, retrieve={"aux_k": 3})
+    data = engine.snapshot_data(engine.build_snapshot(DOCS, source="t"))
+    query, served = "reverse the words", ["e", "a"]
+
+    def z(vec: np.ndarray, matrix: np.ndarray) -> float:
+        s = exact_search(vec.reshape(1, -1), matrix)[0]
+        top = np.sort(-np.partition(-s, min(CROWD, len(s)) - 1)[: min(CROWD, len(s))])[::-1]
+        return z_top1(top, float(s[data.position("e")]))
+
+    z1 = z(engine._query_vector(data.snapshot.snapshot_id, query, route="generic"), data.vectors)
+    z2 = z(engine._aux_query_vector(data.snapshot.snapshot_id, query, route="generic"), data.aux_vectors)
+    assert engine.confidence_signal(data, query, served, route="generic") == pytest.approx((z1 + z2) / 2)

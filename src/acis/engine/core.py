@@ -1326,16 +1326,28 @@ class AcisEngine(VersionedEngineMixin):
         return self._calibration
 
     def confidence_signal(self, data: SnapshotData, query: str, served: Sequence[str], *, route: str) -> float:
-        """z of the served #1 against this query's own top-100 dense cosines (`acis.rank.confidence`)."""
+        """z of the served #1 against this query's own top-100 dense cosines (`acis.rank.confidence`); with a second
+        encoder, the mean of its z and the primary's."""
         from acis.rank.confidence import CROWD, z_top1  # noqa: PLC0415
 
         if not served or data.vectors is None or self.encoder is None:
             return float("nan")
+
+        def z_under(scores: np.ndarray) -> float:
+            crowd = min(CROWD, int(scores.shape[0]))
+            top = -np.partition(-scores, crowd - 1)[:crowd]
+            return z_top1(np.sort(top)[::-1], float(scores[data.position(served[0])]))
+
         vector = self._query_vector(data.snapshot.snapshot_id, query, route=route)
-        scores = exact_search(vector.reshape(1, -1), data.vectors)[0]
-        crowd = min(CROWD, int(scores.shape[0]))
-        top = -np.partition(-scores, crowd - 1)[:crowd]
-        return z_top1(np.sort(top)[::-1], float(scores[data.position(served[0])]))
+        z = z_under(exact_search(vector.reshape(1, -1), data.vectors)[0])
+        if data.aux_vectors is not None and self.aux_encoder is not None:
+            # With a second encoder the signal is the mean of the two z's: on the 5,000 dev queries it predicts a
+            # correct #1 with AUC 0.876 against 0.832 for the primary alone (scripts/bench/calibrate_confidence.py).
+            vector2 = self._aux_query_vector(data.snapshot.snapshot_id, query, route=route)
+            z2 = z_under(exact_search(vector2.reshape(1, -1), data.aux_vectors)[0])
+            if z2 == z2 and z == z:
+                return (z + z2) / 2.0
+        return z
 
     def _confidence(self, z: float, route: str) -> tuple[Confidence, bool, dict[str, Any]]:
         """A report, never a ranking input (spec 02 §4 stage 11): calibrated P(served #1 relevant) → band."""

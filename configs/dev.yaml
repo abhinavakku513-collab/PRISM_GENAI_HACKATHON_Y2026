@@ -23,5 +23,6 @@ rank:     {model: artifacts/ranker/p0-gte-qwen-mix-pool500.txt,   # G5: statemen
            # CodeSearchNet-Py +0.76 [+0.30,+1.23] [ledger:dev-e5bae0ac27c0] (scripts/bench/reg_fusion.py)
 route:    {bank: artifacts/route/dev_query_bank.npy, tau: 0.6002, k: 8, rho: 0.35}   # routing v1.1, spec 10 §4
 compose:  {mode_a_scores: rank_derived}
-# Confidence is a report, never a ranking input: calibrated P(top result relevant) per route [ledger:dev-50c946dc1c29]
+# Confidence is a report, never a ranking input: calibrated P(top result relevant) per route, from the mean of the two
+# encoders' z, fitted on the served pipeline (scripts/bench/calibrate_confidence_engine.py) [ledger:dev-528ef76633cd]
 confidence: {calibration: artifacts/confidence/calibration.json}

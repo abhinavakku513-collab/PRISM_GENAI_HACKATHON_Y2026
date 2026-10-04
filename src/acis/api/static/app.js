@@ -260,6 +260,20 @@ function lightPipeline(target, r) {
   set("features", ordering === "ltr" ? `${ms("features").toFixed(1)} ms` : null);
   const rankNode = root.querySelector('[data-node="rank"] .pl-title');
   if (rankNode) rankNode.textContent = ordering && ordering !== "ltr" && !single ? ORDERING[ordering] || "Ranking" : (sys && sys.ranker && sys.ranker.loaded ? "Learned ranking" : "Ranking");
+  // The description under the title says what ran for THIS query: the ranker only when it ordered the list.
+  const rankDesc = root.querySelector('[data-node="rank"] .pl-desc');
+  if (rankDesc) {
+    const rk = (sys && sys.ranker) || {};
+    const w = e.generic_aux_weight, a = e.generic_alpha;
+    const fusionDesc = `${e.second_encoder ? `gte + ${shortName(e.second_encoder)} cosines` : "dense cosine"}`
+      + `${w ? ` (second-encoder share ${w})` : ""} + BM25${a != null ? ` · α ${a}` : ""} · the learned ranker is used for problem statements`;
+    rankDesc.textContent = single ? ""
+      : ordering === "ltr" ? `LightGBM LambdaRank · ${rk.rounds || ""} trees · trained on ${fmtInt(rk.trained_on_queries)} queries`
+      : ordering === "fusion" ? fusionDesc
+      : ordering === "identifier_first" ? `units containing the identifier verbatim first, then ${fusionDesc}`
+      : ordering === "ltr_abstained" ? "the ranker abstained (too little evidence fired): semantic order kept"
+      : rankDesc.textContent;
+  }
   set("rank", single ? null : ordering === "ltr" ? `ordered ${fmtInt(c.candidates)} · ${ms("ranker").toFixed(1)} ms`
     : ordering === "fusion" || ordering === "identifier_first" ? `short query · ${ms("fusion").toFixed(1)} ms` : ORDERING[ordering] || "");
   const facts = e.confidence || {};
@@ -421,7 +435,7 @@ async function searchP0(e) {
     RESPONSE_OF["results-search"] = r;
     renderContext("context-search", r, { expectRepo: "-" });
     notice("notice-search", "warn", r.no_strong_match
-      ? "<b>No strong match.</b> Every signal the engine has rates these results as only loosely related to the query. They are shown ranked; treat them as suggestions."
+      ? "<b>Low confidence.</b> The calibrated estimate that the top result is relevant is below 30 % for this query (see Technical details for the basis). The results are still the best-ranked matches; treat them as suggestions."
       : "");
     renderHits("results-search", r.results, r.explanation);
     renderSummary("summary-search", r, wall);

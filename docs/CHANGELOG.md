@@ -20,6 +20,12 @@ cold; a strict run refuses a configured channel that cannot load; a cold run enc
 Qwen's forward batches are capped at 4,096 tokens (the cold run was OOM-killed at the default); the submission
 verifier allows exactly MTEB's own 5-decimal rounding when re-scoring against the JSON.
 
+**Confidence report (after the official run; no ranking change).** The calibrated confidence was still fitted on
+the pre-Qwen pipeline, so short questions read "weak match" even when the top result was right. The signal is now the
+mean of both encoders' z (AUC for a correct #1: 0.876 vs 0.832), recalibrated on the served pipeline — APPS dev out of
+fold and live CodeSearchNet-Python queries `[ledger:dev-528ef76633cd]`; held out, "high" means the top result was
+right 92–94 % of the time. The UI's ranking card now describes the stage that actually ran.
+
 **Submission tooling.** `make models` (pinned download + verification), `make rc-smoke` (fills the sealed dataset cache
 through MTEB's own loader, then proves the offline load), per-encoder prebuilt vector packs (`acis demo-index
 --encoder`), Mode A as the primary official surface, P0 evidence published in `docs/evidence/p0/`.
