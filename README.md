@@ -151,7 +151,6 @@ fp32), cold — no cached vectors. Values copied from MTEB's JSON (`scores.test[
 | **MRR@10** | **74.393** |
 | Recall@10 · Recall@100 | 90.438 · 98.327 |
 | NDCG@1 | 66.189 |
-| `evaluation_time` (cold, 8-core CPU, no GPU) | 27,849 s (7.7 h) |
 
 Provenance: mteb 2.21.0 · dataset `CoIR-Retrieval/apps@f22508f96b7a` · model revision `280454985c1b+68b5a3b4e3a0`
 (git commit `2804549` + config hash) · ledger `[ledger:rc-bd2285335a86]` · 1 of 6 TEST touches ·
